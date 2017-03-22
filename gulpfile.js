@@ -5,7 +5,9 @@ const gulp = require('gulp'),
   uglify = require('gulp-uglify'),
   rename = require('gulp-rename'),
     sass = require('gulp-sass'),
-    maps = require('gulp-sourcemaps');
+    maps = require('gulp-sourcemaps'),
+    del = require('del');
+
 
 gulp.task("concatScripts", () => {
     return gulp.src([
@@ -19,7 +21,7 @@ gulp.task("concatScripts", () => {
     .pipe(gulp.dest('js'));
 });
 
-gulp.task("minifyScripts", ['concatScripts'], () => {
+gulp.task('minifyScripts', ['concatScripts'], () => {
 	return gulp.src("js/app.js")
 		.pipe(uglify())
 		.pipe(rename('app.min.js'))
@@ -34,14 +36,26 @@ gulp.task('compileSass', () => {
       .pipe(gulp.dest('css'));
 })
 
-gulp.task('watchSass', () => {
-  gulp.watch('scss/**/*.scss', ['compileSass']);
-
+gulp.task('watchFiles', () => {
+  gulp.watch('scss/**/*.scss', ['compileSass'])
+  gulp.watch('js/main.js', ['concatScripts']);
 });
 
-gulp.task('build', ['minifyScripts', 'compileSass']);
+gulp.task('clean', () => {
+  del(['dist', 'css/application.css*', 'js/app.*.js*']);
+});
 
-gulp.task("default", ['build']);
+gulp.task('build', ['minifyScripts', 'compileSass'], () => {
+  return gulp.src(['css/application.css', 'js/app.min.js', 'index.html', 
+                   'img/**', 'fonts/**'], {base: './'})
+    .pipe(gulp.dest('dist'));
+});
+
+gulp.task('serve', ['watchFiles']);
+
+gulp.task("default", ['clean'], () => {
+  gulp.start('build');
+});
 
 
 
